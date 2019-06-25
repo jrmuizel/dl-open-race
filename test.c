@@ -35,6 +35,9 @@ static void *my_malloc_hook(size_t size, const void *caller) {
   /* Save underlying hooks */
   old_malloc_hook = __malloc_hook;
   /* printf might call malloc, so protect it too. */
+  if (size == 64) {
+	  printf("malloc 64");
+  }
   // printf ("malloc %u (%u) returns %p\n", pthread_self(), (unsigned int) size,
   // result);
   /* Restore our own hooks */
