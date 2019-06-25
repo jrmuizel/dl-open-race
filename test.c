@@ -16,8 +16,8 @@ static void my_init(void) {
   __malloc_hook = my_malloc_hook;
 }
 
-int allowed_mallocs = 1;
-int block_malloc;
+volatile int allowed_mallocs = 1;
+volatile int block_malloc;
 pthread_t blocked_thread;
 static void *my_malloc_hook(size_t size, const void *caller) {
   void *result;
@@ -48,11 +48,12 @@ static void *my_malloc_hook(size_t size, const void *caller) {
 void *inc_x(void *x_void_ptr) {
 
   /* increment x to 100 */
-  int *x_ptr = (int *)x_void_ptr;
-  while (++(*x_ptr) < 100)
+  volatile int *x_ptr = (int *)x_void_ptr;
+    printf("x increment finished\n");
+
+  *x_ptr = 1;
     ;
 
-  printf("x increment finished\n");
 
   /* the function must return something - NULL will do */
   return NULL;
@@ -62,11 +63,11 @@ void *inc_x(void *x_void_ptr) {
 void *do_dlopen(void *x_void_ptr) {
 
   /* increment x to 100 */
-  int *x_ptr = (int *)x_void_ptr;
+  volatile int *x_ptr = (int *)x_void_ptr;
   while (*x_ptr == 0) {
   }
 
-  dlopen("libGL.so", 1);
+  dlopen("libgbm.so", 1);
   printf("done open\n");
 
   return NULL;
@@ -93,7 +94,7 @@ main() {
 
   /* this variable is our reference to the second thread */
 
-  int y;
+  volatile int y = 0;
   while (allowed_mallocs) {
   }
   /* create a second thread which executes inc_x(&x) */
@@ -101,6 +102,9 @@ main() {
 
     fprintf(stderr, "Error creating thread\n");
     return 1;
+  }
+  while (y == 0) {
+
   }
   block_malloc = 0;
   while (1) {
